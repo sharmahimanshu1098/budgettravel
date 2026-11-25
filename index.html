@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Plan your next trip around what you want to spend.">
+<title>Budget Traveller | Trip planner</title>
+<link rel="stylesheet" href="./style.css">
+<script src="./app.js" defer></script>
+</head>
+<body>
+<header class="shell nav">
+<a class="brand" href="./index.html"><span class="mark" aria-hidden="true">✦</span> Budget Traveller</a>
+<div class="nav-actions"><button id="login" class="quiet">Log in</button><button id="signup" class="primary">Sign up</button><button id="logout" class="quiet" hidden>Log out</button></div>
+</header>
+<main class="shell">
+<section class="hero" aria-labelledby="intro">
+<div class="hero-copy">
+<p class="eyebrow">THE BUDGET-FIRST TRIP PLANNER</p>
+<h1 id="intro">Go further.<br><em>Spend smarter.</em></h1>
+<p class="intro">Pick a destination, set your budget, and see how much you could put toward flights, stays, and days out.</p>
+<button id="start" class="primary">Start planning</button>
+</div>
+<figure class="photo"><figcaption>Lago di Braies, Italy</figcaption></figure>
+</section>
+<section class="planner" id="planner" aria-labelledby="plan-title">
+<div class="plan-copy"><p class="eyebrow">YOUR TRIP</p><h2 id="plan-title">Build your budget.</h2><p>Tell us who’s going and what you want to spend. We’ll turn it into a starting budget and a simple itinerary.</p><p id="account-note" class="note">Create an account or log in to generate a plan.</p></div>
+<div class="panel">
+<form id="trip">
+<div class="fields">
+<label>Full name<input required name="name" maxlength="100" autocomplete="name" placeholder="Your name"></label>
+<label>Age<input required name="age" type="number" min="1" max="120" placeholder="Your age"></label>
+<label>Destination country<select name="country" required><option value="">Choose a country</option></select></label>
+<label>Departure city<input required name="origin" maxlength="100" placeholder="e.g. Mumbai"></label>
+<label>Total trip budget<input required name="budget" type="number" min="1" max="100000000" step="1" placeholder="e.g. 80000"></label>
+<label>Currency<select name="currency"><option>INR</option><option>USD</option><option>EUR</option><option>GBP</option><option>AUD</option><option>CAD</option></select></label>
+<label>Traveling with<select name="group"><option value="solo">Solo</option><option value="family">Family</option></select></label>
+<label id="party-label" hidden>Travelers<input name="party" type="number" min="2" max="20" value="2" disabled required></label>
+<label>Trip length (days)<input name="days" type="number" min="2" max="60" value="5" required></label>
+</div>
+<button class="primary wide">Build my trip plan</button>
+</form>
+</div>
+<section id="result" class="panel result" hidden aria-live="polite" tabindex="-1"></section>
+</section>
+</main>
+<footer class="shell footer"><span>Budget Traveller</span><a href="https://unsplash.com/photos/brown-wooden-dock-on-lake-near-mountain-range-BX-vg6YCa_A">Photo by Salmen Bejaoui on Unsplash</a></footer>
+<dialog id="auth">
+<button class="close quiet" type="button" aria-label="Close">×</button>
+<h2 id="auth-title"></h2>
+<button id="google-auth" type="button" class="google wide" disabled>Continue with Google</button>
+<p id="google-status" class="note">Google sign-in requires local setup.</p>
+<form id="auth-form">
+<label id="auth-name" hidden>Full name<input name="name" maxlength="100" autocomplete="name"></label>
+<label>Email<input name="email" type="email" maxlength="254" required autocomplete="email"></label>
+<label>Password<input name="password" type="password" minlength="8" maxlength="128" required></label>
+<p id="auth-message" role="alert"></p>
+<button class="primary wide" id="auth-submit"></button>
+<button class="quiet switch" id="auth-switch" type="button"></button>
+</form>
+</dialog>
+</body>
+</html>

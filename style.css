@@ -1,0 +1,60 @@
+:root{font-family:system-ui,sans-serif;color:#182d25;background:#f5f6ef;--ink:#182d25;--green:#174c39;--muted:#53655b;--line:#d8dfd5}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0}
+button,input,select{font:inherit}
+button{cursor:pointer}
+a{color:inherit}
+.shell{width:min(1160px,calc(100% - 64px));margin-inline:auto}
+.nav{min-height:90px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.brand{display:flex;align-items:center;gap:11px;text-decoration:none;font-size:1.125rem;font-weight:760}
+.mark{display:grid;place-items:center;width:34px;height:34px;background:#dce9d7;border-radius:50%;color:var(--green)}
+.nav-actions{display:flex;gap:8px}
+.primary,.quiet{padding:11px 20px;min-height:44px;border:1px solid transparent;border-radius:8px;font-size:.9375rem;font-weight:680}
+.primary{background:var(--green);color:white}
+.primary:hover{background:#23664e}
+.quiet{background:transparent;color:var(--green)}
+.quiet:hover{background:#e5ece3}
+:focus-visible{outline:3px solid #608c5f;outline-offset:3px}
+.hero{display:grid;grid-template-columns: .93fr 1.07fr;gap:34px;min-height:475px;align-items:stretch}
+.hero-copy{padding:70px 0 56px}
+.eyebrow{font-size:.875rem;font-weight:750;letter-spacing:.12em;color:#3f694d;margin:0 0 16px}
+h1,h2{font-family:Georgia,serif;font-weight:500;letter-spacing:-.055em;margin:0}
+h1{font-size:clamp(3.25rem,6vw,6rem);line-height:.99}
+h1 em{color:#32644b;font-weight:inherit}
+h2{font-size:clamp(2rem,4vw,3.4rem);line-height:1.06}
+.intro,.plan-copy>p:not(.eyebrow){color:var(--muted);line-height:1.65;max-width:390px}
+.intro{margin:26px 0;font-size:1.125rem}
+.photo{position:relative;min-height:360px;margin:0;border-radius:18px;overflow:hidden;background:#325b51 url('./lake.jpg') center 55%/cover no-repeat}
+.photo figcaption{position:absolute;bottom:18px;left:18px;background:#172d27e8;color:white;border-radius:6px;padding:8px 12px;font-size:.875rem}
+.planner{display:grid;grid-template-columns:.75fr 1.25fr;gap:26px;margin-top:64px;padding:36px;background:#e9eee4;border-radius:18px;align-items:start}
+.plan-copy{padding:12px 0}
+.note{font-size:.875rem}
+.panel{background:white;border:1px solid var(--line);border-radius:13px;padding:24px}
+.fields,.metrics{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+label{display:grid;gap:6px;font-size:.875rem;font-weight:680;min-width:0}
+input,select{min-width:0;width:100%;min-height:45px;padding:9px 11px;border:1px solid #bfcbbf;border-radius:7px;color:var(--ink);background:#fff;font-size:1rem}
+select{appearance:none;padding-right:30px;background-image:linear-gradient(45deg,transparent 50%,#456553 50%),linear-gradient(135deg,#456553 50%,transparent 50%);background-size:5px 5px;background-repeat:no-repeat;background-position:calc(100% - 15px) 50%,calc(100% - 10px) 50%}
+.wide{width:100%;margin-top:18px}
+.result{grid-column:1/-1}
+.result h3{font-size:1.4rem;margin:0 0 8px}
+.result p,.result li{line-height:1.55}
+.metrics{margin:20px 0;grid-template-columns:repeat(4,1fr)}
+.metric{padding:14px;background:#edf3e9;border-radius:8px}
+.metric strong,.metric span{display:block}
+.metric span{font-size:.875rem;color:var(--muted)}
+.footer{display:flex;justify-content:space-between;gap:12px;color:var(--muted);font-size:.875rem;padding-block:28px}
+dialog{width:min(440px,calc(100% - 28px));padding:32px;border:1px solid var(--line);border-radius:14px;color:var(--ink)}
+dialog::backdrop{background:#142820a0}
+dialog h2{margin-bottom:24px}
+dialog label+label{margin-top:14px}
+.close{position:absolute;top:6px;right:6px;font-size:1.3rem;padding-inline:14px}
+.switch{display:block;width:100%;margin-top:8px}
+#auth-message{color:#9b3228;font-size:.875rem;margin-bottom:0}
+#auth-message:empty{display:none}
+@media(max-width:800px){.shell{width:calc(100% - 36px)}.hero,.planner{grid-template-columns:1fr}.hero-copy{padding:34px 0 0}.planner{margin-top:32px;padding:20px}.photo{min-height:310px}.metrics{grid-template-columns:1fr 1fr}}
+@media(max-width:420px){.nav{min-height:72px}.nav-actions{gap:0}.nav-actions button{padding-inline:9px}.brand{font-size:1rem}.mark{width:26px;height:26px}.fields{grid-template-columns:1fr}.panel{padding:15px}.footer{flex-wrap:wrap}}
+.google{margin:0 0 14px;min-height:44px;border:1px solid #bfcbbf;border-radius:8px;background:white;color:var(--ink);font-weight:680}
+.google:hover:enabled{background:#edf3e9}
+.google:disabled{opacity:.6;cursor:default}
+#google-status{margin:0 0 16px;color:var(--muted)}
