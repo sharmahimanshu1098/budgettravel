@@ -8,6 +8,8 @@ import os
 import re
 import secrets
 import sqlite3
+import ssl
+import sys
 import time
 from contextlib import contextmanager
 from http import HTTPStatus
@@ -63,6 +65,10 @@ def issue_session(db, user_id, previous_session):
 
 
 def google_profile(code, verifier, redirect_uri):
+    context = ssl.create_default_context()
+    system_bundle = Path("/etc/ssl/cert.pem")
+    if sys.platform == "darwin" and system_bundle.is_file():
+        context.load_verify_locations(cafile=str(system_bundle))
     token_request = Request("https://oauth2.googleapis.com/token", data=urlencode({
         "code": code,
         "code_verifier": verifier,
@@ -71,11 +77,11 @@ def google_profile(code, verifier, redirect_uri):
         "redirect_uri": redirect_uri,
         "grant_type": "authorization_code",
     }).encode())
-    with urlopen(token_request, timeout=10) as response:
+    with urlopen(token_request, timeout=10, context=context) as response:
         access_token = json.load(response)["access_token"]
     profile_request = Request("https://openidconnect.googleapis.com/v1/userinfo",
                               headers={"Authorization": "Bearer " + access_token})
-    with urlopen(profile_request, timeout=10) as response:
+    with urlopen(profile_request, timeout=10, context=context) as response:
         return json.load(response)
 
 
@@ -200,7 +206,7 @@ class Handler(BaseHTTPRequestHandler):
         request = urlsplit(self.path)
         if request.path in {"/auth/google/start", "/auth/google/callback"}:
             self.google_auth(request)
-        elif self.path == "/api/session":
+        elif request.path == "/api/session":
             with database() as db:
                 row = db.execute(
                     """SELECT users.name FROM sessions JOIN users ON users.id = sessions.user_id
@@ -208,8 +214,8 @@ class Handler(BaseHTTPRequestHandler):
                     (hashlib.sha256(self.session().encode()).digest(), time.time()),
                 ).fetchone()
             self.json(200, {"user": {"name": row[0]} if row else None, "googleEnabled": GOOGLE_ENABLED})
-        elif self.path in FILES:
-            name, content_type = FILES[self.path]
+        elif request.path in FILES:
+            name, content_type = FILES[request.path]
             try:
                 data = (ROOT / name).read_bytes()
             except FileNotFoundError:
