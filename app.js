@@ -74,6 +74,7 @@ byId('logout').onclick = async () => {
     await api('logout', {});
     setAccount(null);
     trip.reset();
+    updateReturnDate();
     updateParty();
     byId('result').replaceChildren();
     byId('result').hidden = true;
@@ -97,6 +98,161 @@ function element(tag, message, className) {
   return item;
 }
 
+const calendar = new Intl.DateTimeFormat('en', {dateStyle:'medium', timeZone:'UTC'});
+const localToday = new Date();
+localToday.setMinutes(localToday.getMinutes() - localToday.getTimezoneOffset());
+trip.elements.departure.min = localToday.toISOString().slice(0, 10);
+
+function returnDate(departure, days) {
+  const date = new Date(departure + 'T00:00:00Z');
+  date.setUTCDate(date.getUTCDate() + days - 1);
+  return date.toISOString().slice(0, 10);
+}
+
+function updateReturnDate() {
+  const {departure, days} = trip.elements;
+  byId('return-date').textContent = departure.value && departure.validity.valid && days.validity.valid
+    ? 'Return date: ' + calendar.format(new Date(returnDate(departure.value, Number(days.value))))
+    : '';
+}
+trip.addEventListener('input', updateReturnDate);
+
+const departureAirports = {
+  delhi:'DEL', 'new delhi':'DEL', 'delhi ncr':'DEL', mumbai:'BOM', bangalore:'BLR',
+  bengaluru:'BLR', hyderabad:'HYD', chennai:'MAA', kolkata:'CCU', kochi:'COK',
+};
+const destinationCities = {SG:'Singapore'};
+const cityCodes = {...departureAirports, singapore:'SIN'};
+function airportCode(place) {
+  const name = place.trim().toLowerCase();
+  return Object.hasOwn(cityCodes, name) ? cityCodes[name] : /^[a-z]{3}$/.test(name) ? name.toUpperCase() : '';
+}
+let autoDestination = '';
+trip.elements.country.addEventListener('change', () => {
+  const destination = trip.elements.destination;
+  if (!destination.value || destination.value === autoDestination) {
+    autoDestination = destinationCities[trip.elements.country.value] || '';
+    destination.value = autoDestination;
+  }
+});
+
+function flightDuration(value) {
+  if (typeof value === 'string') {
+    const parts = value.match(/^P(?:(\d+)D)?T(?:(\d+)H)?(?:(\d+)M)?$/);
+    if (!parts) return '';
+    value = Number(parts[1] || 0) * 1440 + Number(parts[2] || 0) * 60 + Number(parts[3] || 0);
+  }
+  if (!Number.isFinite(value) || value <= 0) return '';
+  const hours = Math.floor(value / 60);
+  const minutes = value % 60;
+  return [hours ? hours + 'h' : '', minutes ? minutes + 'm' : ''].filter(Boolean).join(' ');
+}
+
+function flightCard(offer, budgetCurrency, cap) {
+  const card = element('article', '', 'offer');
+  const itinerary = element('div', '', 'offer-itinerary');
+  offer.slices.forEach((slice, index) => {
+    const first = slice[0];
+    const last = slice.at(-1);
+    if (!first || !last) return;
+    const direction = element('section', '', 'offer-direction');
+    const route = element('div', '', 'offer-route');
+    for (const [airport, timestamp] of [[first.origin, first.departure], [last.destination, last.arrival]]) {
+      const endpoint = element('div', '', 'offer-endpoint');
+      endpoint.append(element('strong', timestamp.slice(11, 16)),
+        element('span', airport + ' · ' + calendar.format(new Date(timestamp.slice(0, 10)))));
+      route.append(endpoint);
+    }
+    const summary = [slice.length === 1 ? 'Nonstop' : (slice.length - 1) + (slice.length === 2 ? ' stop' : ' stops'),
+      flightDuration(offer.durations?.[index])].filter(Boolean).join(' · ');
+    const carriers = [...new Set(slice.map(segment => segment.carrier))].join(' / ');
+    direction.append(element('h5', index === 0 ? 'Outbound' : 'Return'), route,
+      element('p', summary, 'offer-meta'), element('p', carriers, 'offer-meta'));
+    if (slice.length > 1) {
+      direction.append(element('p', 'Via ' + slice.slice(0, -1).map(segment => segment.destination).join(', '), 'offer-meta'));
+    }
+    itinerary.append(direction);
+  });
+  const price = element('div', '', 'offer-price');
+  const formatted = new Intl.NumberFormat('en-IN', {style:'currency', currency:offer.currency}).format(Number(offer.amount));
+  price.append(element('h4', formatted), element('p', 'Round-trip total', 'offer-meta'));
+  if (offer.sellers?.length) price.append(element('p', offer.sellers.join(' + '), 'offer-seller'));
+  if (offer.currency === budgetCurrency && Number(offer.amount) <= cap) {
+    price.append(element('p', 'Within flight budget', 'offer-meta'));
+  }
+  if (offer.bookingUrl) {
+    const booking = element('a', 'View fare', 'primary');
+    Object.assign(booking, {href:offer.bookingUrl, target:'_blank', rel:'noopener noreferrer'});
+    price.append(booking);
+  }
+  card.append(itinerary, price);
+  return card;
+}
+
+function matchesFlightDates(offer, departure, inbound) {
+  return offer.slices.length === 2 &&
+    offer.slices[0][0]?.departure?.slice(0, 10) === departure &&
+    offer.slices[1][0]?.departure?.slice(0, 10) === inbound;
+}
+
+function flightSearch(data, people, inbound, cap, money) {
+  const details = element('details', '', 'flight-search');
+  details.id = 'flight-search';
+  details.open = true;
+  details.append(element('summary', 'Round-trip flights'));
+  const country = countries.get(data.country);
+  const originCode = airportCode(data.origin);
+  const arrival = data.destination.trim();
+  const destinationCode = data.country === 'SG' && arrival.toLowerCase() === 'singapore'
+    ? 'SIN' : /^[a-z]{3}$/i.test(arrival) ? arrival.toUpperCase() : '';
+  const dates = 'Depart ' + calendar.format(new Date(data.departure)) +
+    ' · Return ' + calendar.format(new Date(inbound));
+  const route = data.origin + ' to ' + data.destination + (arrival.toLowerCase() === country.toLowerCase() ? '' : ', ' + country);
+
+  const links = element('ul', '', 'fare-sources');
+  function addLink(label, href) {
+    const item = document.createElement('li');
+    const link = element('a', label);
+    Object.assign(link, {href, target:'_blank', rel:'noopener noreferrer'});
+    item.append(link);
+    links.append(item);
+  }
+  if (originCode && destinationCode) {
+    const datePath = date => date.slice(2).replaceAll('-', '');
+    const params = new URLSearchParams({adultsv2:people, cabinclass:'economy', sortby:'cheapest', currency:'INR'});
+    if (Number(data.age) < 18) {
+      params.set('adultsv2', people - 1);
+      params.set('childrenv2', data.age);
+    }
+    addLink('Search these dates on Skyscanner', 'https://www.skyscanner.co.in/transport/flights/' +
+      [originCode.toLowerCase(), destinationCode.toLowerCase(), datePath(data.departure), datePath(inbound)].join('/') + '/?' + params);
+  }
+  addLink('Search Google Flights', 'https://www.google.com/travel/flights?q=' + encodeURIComponent(
+    'Round trip flights from ' + data.origin + ' to ' + data.destination + ', ' + country +
+    ' departing ' + data.departure + ' returning ' + inbound + ' for ' + people + ' travelers'));
+
+  const status = element('p', 'Searching for fares…', 'note');
+  status.setAttribute('role', 'status');
+  const offers = element('div', '', 'offers');
+  details.append(element('p', route + ' · ' + dates + ' · Flight budget ' + money(cap)), status, offers, links);
+
+  api('flights', {
+    origin:originCode || data.origin, destination:destinationCode || data.destination,
+    country:data.country, countryName:country, departure:data.departure, inbound, people, age:Number(data.age),
+  }).then(response => {
+    const matchingOffers = response.offers.filter(offer => matchesFlightDates(offer, data.departure, inbound));
+    const count = matchingOffers.length;
+    const summary = count
+      ? count + ' round-trip offers from ' + response.provider + ' · Cheapest first within each currency · Total for all travelers'
+      : 'No round-trip offers from ' + response.provider + ' for these exact dates.';
+    status.textContent = summary + (response.complete ? '' : ' Some sellers may still be responding.');
+    for (const offer of matchingOffers) offers.append(flightCard(offer, data.currency, cap));
+  }).catch(error => {
+    status.textContent = error.message;
+  });
+  return details;
+}
+
 trip.onsubmit = event => {
   event.preventDefault();
   if (!account) {
@@ -110,13 +266,26 @@ trip.onsubmit = event => {
   const budget = Number(data.budget);
   const flight = Math.floor(budget * (family ? .4 : .45));
   const stay = Math.floor(budget * (family ? .35 : .30));
-  const daily = Math.floor(budget * .20);
+  const food = Math.floor(budget * .12);
+  const transport = Math.floor(budget * .08);
+  const inbound = returnDate(data.departure, days);
   const currency = new Intl.NumberFormat('en', {style:'currency', currency:data.currency});
   const money = value => currency.format(value);
   const result = byId('result');
   const metrics = element('div', '', 'metrics');
-  for (const [label, value] of [['Flights',flight],['Accommodation',stay],['Food and transport',daily],['Reserve',budget-flight-stay-daily]]) {
-    const card = element('div', '', 'metric');
+  const flights = flightSearch(data, people, inbound, flight, money);
+  for (const [label, value] of [['Flights',flight],['Accommodation',stay],['Public transport',transport],['Food',food],['Reserve',budget-flight-stay-food-transport]]) {
+    const card = element(label === 'Flights' ? 'button' : 'div', '', 'metric');
+    if (label === 'Flights') {
+      card.type = 'button';
+      card.setAttribute('aria-controls', flights.id);
+      card.setAttribute('aria-expanded', String(flights.open));
+      card.onclick = () => {
+        flights.open = true;
+        flights.querySelector('summary').focus();
+      };
+      flights.ontoggle = () => card.setAttribute('aria-expanded', String(flights.open));
+    }
     card.append(element('span', label), element('strong', money(value)));
     metrics.append(card);
   }
@@ -127,9 +296,10 @@ trip.onsubmit = event => {
   result.replaceChildren(
     element('h3', data.name + '’s trip to ' + countries.get(data.country)),
     element('p', days + ' days · ' + people + (people === 1 ? ' traveler' : ' travelers') + ' · Departing from ' + data.origin),
-    element('p', 'Suggested spending limits. Live flight fares and hotel rates are unavailable in this version.'),
+    element('p', calendar.formatRange(new Date(data.departure), new Date(inbound)) + ' · Suggested spending limits'),
     metrics,
-    element('p', 'Flights: aim for ' + money(flight / people) + ' per traveler, including baggage. Compare nearby departure dates and total fares.'),
+    flights,
+    element('p', 'Flights: aim for ' + money(flight / people) + ' per traveler, including baggage. Check the total fare and baggage allowance.'),
     element('p', 'Stay: aim for ' + money(stay / (days - 1)) + ' per night for the whole group. ' + (family ? 'Compare family rooms and apartments with kitchens.' : 'Compare private rooms and hostels near public transport.')),
     itinerary,
   );

@@ -31,14 +31,17 @@
 <label>Full name<input required name="name" maxlength="100" autocomplete="name" placeholder="Your name"></label>
 <label>Age<input required name="age" type="number" min="1" max="120" placeholder="Your age"></label>
 <label>Destination country<select name="country" required><option value="">Choose a country</option></select></label>
-<label>Departure city<input required name="origin" maxlength="100" placeholder="e.g. Mumbai"></label>
+<label>Departure city or airport code<input required name="origin" maxlength="100" placeholder="e.g. Delhi or DEL"></label>
+<label>Destination city or airport code<input required name="destination" maxlength="100" placeholder="Enter a city in your selected country"></label>
 <label>Total trip budget<input required name="budget" type="number" min="1" max="100000000" step="1" placeholder="e.g. 80000"></label>
 <label>Currency<select name="currency"><option>INR</option><option>USD</option><option>EUR</option><option>GBP</option><option>AUD</option><option>CAD</option></select></label>
 <label>Traveling with<select name="group"><option value="solo">Solo</option><option value="family">Family</option></select></label>
 <label id="party-label" hidden>Travelers<input name="party" type="number" min="2" max="20" value="2" disabled required></label>
+<label>Departure date<input name="departure" type="date" required></label>
 <label>Trip length (days)<input name="days" type="number" min="2" max="60" value="5" required></label>
 </div>
-<button class="primary wide">Build my trip plan</button>
+<button class="primary wide">Build my trip</button>
+<p id="return-date" class="note" aria-live="polite"></p>
 </form>
 </div>
 <section id="result" class="panel result" hidden aria-live="polite" tabindex="-1"></section>

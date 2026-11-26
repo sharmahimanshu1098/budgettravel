@@ -53,3 +53,54 @@ login. The app uses basic Google identity information (name, verified email,
 and account identifier). Gmail inbox access is outside the requested scopes.
 An existing password account with the same email continues to use password
 login. Google accounts created here can return using the same Google account.
+
+## Trip dates and flight search
+
+Choose a departure date and trip length. Day 1 is the departure day, so
+a five-day trip returns four calendar days after departure. The plan splits
+your total budget across flights, accommodation, public transport, food,
+and a reserve.
+
+Select the **Flights** card to compare round trips. The Google Flights link
+passes your departure city, destination country, dates, and party size as
+search text. Confirm the resulting route and dates on Google Flights.
+
+For fares inside the app, set `DUFFEL_ACCESS_TOKEN` in the server environment
+and restart. Use a live Duffel token for live inventory. Enter the two IATA
+airport or city codes to search. Offers are ranked by total fare in each
+currency, with fewer segments breaking price ties. The flight budget badge
+compares fares in the budget currency. The main traveler's age is sent to
+Duffel. Additional family travelers are treated as adults in this version.
+
+Select a destination country, enter the destination city, and enter your
+departure city. City-states such as Singapore can be filled automatically
+where configured. Build my trip opens the results and starts the fare
+search. With Skyscanner configured, city names that do not already map to
+an airport code are resolved through Skyscanner Autosuggest. You can enter
+a three-letter IATA code for either city to make the route unambiguous.
+The results also include links to compare fares on external sites.
+
+### Skyscanner Flights Live Prices
+
+An approved Flights Live Prices API key enables Skyscanner as the in-app
+fare provider. The server uses the India market and displays INR economy
+round-trip offers sorted by the total price for the group. Seller names
+and single-seller booking links come from Skyscanner. MakeMyTrip and
+Goibibo appear when Skyscanner returns their offers for the search.
+
+Set the key before running the server. In macOS Terminal's default zsh:
+
+```zsh
+read -s 'SKYSCANNER_API_KEY?Skyscanner API key: '
+export SKYSCANNER_API_KEY
+python3 server.py
+```
+
+Restart any existing preview and keep your existing Google OAuth variables
+in the server environment. The key stays server-side. If both fare providers
+are configured, Skyscanner takes priority. With only a Duffel token, Duffel
+continues to serve fares. Skyscanner allows 1–8 adults per search. If the
+main traveler is under 18, their age is included as a child. Additional
+family travelers are treated as adults in this version.
+
+[Skyscanner Flights Live Prices documentation](https://developers.skyscanner.net/docs/flights-live-prices/quick-start)

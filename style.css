@@ -58,3 +58,27 @@ dialog label+label{margin-top:14px}
 .google:hover:enabled{background:#edf3e9}
 .google:disabled{opacity:.6;cursor:default}
 #google-status{margin:0 0 16px;color:var(--muted)}
+button.metric{border:1px solid #82a08b;color:var(--ink);text-align:left}
+button.metric:hover{background:#dbe9d7}
+.flight-search{margin:20px 0;padding:16px;border:1px solid var(--line);border-radius:8px}
+.flight-search summary{cursor:pointer;font-weight:700}
+.flight-search form button{margin-top:12px}
+.offers{display:grid;gap:12px;margin:14px 0}
+.offer{padding:12px;background:#edf3e9;border-radius:8px}
+.offer h4,.offer p{margin:0 0 4px}
+.fare-sources{display:flex;flex-wrap:wrap;gap:8px 16px;padding:0;list-style:none}
+.fare-sources a{display:inline-block;padding:8px 10px;border:1px solid var(--line);border-radius:6px;color:var(--green)}
+.offer{display:grid;grid-template-columns:minmax(0,1fr) 190px;padding:0;background:#fff;border:1px solid var(--line);overflow:hidden}
+.offer-itinerary{padding:4px 18px}
+.offer-direction{padding:14px 0}
+.offer-direction+.offer-direction{border-top:1px solid var(--line)}
+.offer-direction h5{margin:0 0 9px;color:var(--green);font-size:.875rem}
+.offer-route{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:9px}
+.offer-endpoint strong,.offer-endpoint span{display:block}
+.offer-endpoint strong{font-size:1.25rem}
+.offer-endpoint span,.offer-meta{color:var(--muted);font-size:.875rem}
+.offer-price{display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:5px;padding:16px;background:#edf3e9;border-left:1px solid var(--line)}
+.offer-price h4{font-size:1.4rem}
+.offer-price a{text-decoration:none;margin-top:5px}
+.offer-seller{font-weight:650}
+@media(max-width:580px){.offer{grid-template-columns:1fr}.offer-price{border-left:0;border-top:1px solid var(--line)}}
